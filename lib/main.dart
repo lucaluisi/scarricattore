@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_file_downloader/flutter_file_downloader.dart';
 
 void main() {
   runApp(const MyApp());
@@ -37,17 +38,14 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  final urlController = TextEditingController();
+  double? _progress;
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  @override
+  void dispose() {
+    // Clean up the controller when the widget is disposed.
+    urlController.dispose();
+    super.dispose();
   }
 
   @override
@@ -58,7 +56,6 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            
             children: <Widget>[
               Text(
                 "FICCAMI UN BEL LINKO",
@@ -66,19 +63,36 @@ class _MyHomePageState extends State<MyHomePage> {
                 textAlign: TextAlign.center,
               ),
               TextField(
-                controller: null,
-                decoration: InputDecoration(
-                  hintText: 'linko',
-                ),
+                controller: urlController,
+                decoration: const InputDecoration(
+                    hintText: 'linko', border: OutlineInputBorder()),
               ),
-              ElevatedButton(
-                onPressed: () {},
-                child: const Text("FICCALO", style: TextStyle(fontSize: 20.0)),
-                style: ButtonStyle(
-                  padding:
-                      WidgetStateProperty.all<EdgeInsets>(EdgeInsets.symmetric(horizontal: 50.0, vertical: 20.0)),
-                ),
-              ),
+              _progress != null
+                  ? const CircularProgressIndicator()
+                  : ElevatedButton(
+                      onPressed: () async {
+                        FileDownloader.downloadFile(
+                            url: "http://192.168.1.34:5000/api/download?url=${urlController.text.trim()}",
+                            notificationType: NotificationType.all,
+                            onProgress: (name, progress) {
+                              setState(() {
+                                _progress = progress;
+                              });
+                            },
+                            onDownloadCompleted: (value) {
+                              setState(() {
+                                _progress = null;
+                              });
+                            });
+                      },
+                      style: ButtonStyle(
+                        padding: WidgetStateProperty.all<EdgeInsets>(
+                            const EdgeInsets.symmetric(
+                                horizontal: 50.0, vertical: 20.0)),
+                      ),
+                      child: const Text("FICCALO",
+                          style: TextStyle(fontSize: 20.0)),
+                    ),
             ],
           ),
         ),
